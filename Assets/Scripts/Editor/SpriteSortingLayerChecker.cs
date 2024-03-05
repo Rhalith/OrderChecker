@@ -1,13 +1,17 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SpriteSortingLayerChecker : EditorWindow
     {
         private string sortingLayerToCheck = "";
         private string orderInLayerToCheck = "";
-        private bool showInactive = false;
+        private bool showInactive;
+        private bool isComplex;
+        private string newSceneLocation = "Scenes";
 
         [MenuItem("Tools/Sprite Sorting Layer Checker")]
         public static void ShowWindow()
@@ -24,13 +28,27 @@ public class SpriteSortingLayerChecker : EditorWindow
             orderInLayerToCheck = EditorGUILayout.TextField("Order in Layer", orderInLayerToCheck);
             GUILayout.Label("Show inactive objects:", EditorStyles.boldLabel);
             showInactive = EditorGUILayout.Toggle("Show Inactive", showInactive);
+            isComplex = EditorGUILayout.Toggle("Is Complex", isComplex);
+            if (isComplex)
+            {
+                GUILayout.Label("Enter the location of scenes in Assets folder to save the new scene:");
+                newSceneLocation = EditorGUILayout.TextField("New Scene Location", newSceneLocation);
+            }
 
             if (GUILayout.Button("Check Sprite Sorting Layers"))
             {
-                CheckSpriteSortingLayers();
+                if (isComplex)
+                {
+                    CheckSpriteSortingLayersComplex();
+                }
+                else
+                {
+                    CheckSpriteSortingLayers();
+                }
             }
         }
 
+        #region NormalCheck
         private void CheckSpriteSortingLayers()
         {
             Dictionary<string, List<GameObject>> sortingGroups = new Dictionary<string, List<GameObject>>();
@@ -81,5 +99,21 @@ public class SpriteSortingLayerChecker : EditorWindow
                 }
             }
         }
+        #endregion
+
+        #region ComplexCheck
+        private void CheckSpriteSortingLayersComplex()
+        {
+            string currentScenePath = EditorSceneManager.GetActiveScene().path;
+            if (string.IsNullOrEmpty(currentScenePath))
+            {
+                Debug.LogWarning("Please save the current scene before cloning.");
+                return;
+            }
+            string newSceneName = "Assets/"+newSceneLocation+"/CheckedScene_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".unity";
+            EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), newSceneName);
+            EditorSceneManager.OpenScene(newSceneName);
+        }
+        #endregion
     }
 #endif
