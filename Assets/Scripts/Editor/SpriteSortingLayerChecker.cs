@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -19,7 +20,7 @@ public class SpriteSortingLayerChecker : EditorWindow
             GetWindow<SpriteSortingLayerChecker>("Sprite Sorting Layer Checker");
         }
 
-        void OnGUI()
+        private void OnGUI()
         {
             GUILayout.Label("Enter a Sorting Layer name to check, or leave empty to check all:",
                 EditorStyles.boldLabel);
@@ -39,7 +40,7 @@ public class SpriteSortingLayerChecker : EditorWindow
             {
                 if (isComplex)
                 {
-                    CheckSpriteSortingLayersComplex();
+                    CreateSceneForChecking();
                 }
                 else
                 {
@@ -101,8 +102,8 @@ public class SpriteSortingLayerChecker : EditorWindow
         }
         #endregion
 
-        #region ComplexCheck
-        private void CheckSpriteSortingLayersComplex()
+        #region SceneCreation
+        private void CreateSceneForChecking()
         {
             string currentScenePath = EditorSceneManager.GetActiveScene().path;
             if (string.IsNullOrEmpty(currentScenePath))
@@ -110,9 +111,73 @@ public class SpriteSortingLayerChecker : EditorWindow
                 Debug.LogWarning("Please save the current scene before cloning.");
                 return;
             }
-            string newSceneName = "Assets/"+newSceneLocation+"/CheckedScene_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".unity";
+            string newSceneName = "Assets/"+newSceneLocation+"/CheckedScene_"+ EditorSceneManager.GetActiveScene().name + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".unity";
             EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), newSceneName);
             EditorSceneManager.OpenScene(newSceneName);
+            
+            Dictionary<Tuple<string, int>, List<GameObject>> sortingGroups = new ();
+            
+            bool checkAllSortingLayers = string.IsNullOrEmpty(sortingLayerToCheck);
+            bool checkSpecificOrder = int.TryParse(orderInLayerToCheck, out int orderInLayer);
+
+            foreach (GameObject obj in FindObjectsOfType(typeof(GameObject), showInactive))
+            {
+                SpriteRenderer renderer = obj.GetComponent<SpriteRenderer>();
+                if (renderer != null)
+                {
+                    bool layerMatch = checkAllSortingLayers || renderer.sortingLayerName == sortingLayerToCheck;
+                    bool orderMatch = !checkSpecificOrder || renderer.sortingOrder == orderInLayer;
+                    
+                    if (layerMatch && orderMatch)
+                    {
+                        Tuple<string, int> key = new Tuple<string, int>(renderer.sortingLayerName, renderer.sortingOrder);
+                        if (!sortingGroups.ContainsKey(key))
+                        {
+                            sortingGroups[key] = new List<GameObject>();
+                        }
+
+                        sortingGroups[key].Add(obj);
+                        
+                    }
+                }
+            }
+            ChangeCreatedSceneHiearchy(sortingGroups);
+        }
+        
+        private void ChangeCreatedSceneHiearchy(Dictionary<Tuple<string, int>, List<GameObject>> sortingGroups)
+        {
+            Dictionary<string, GameObject> layerDictionary = new Dictionary<string, GameObject>();
+
+            foreach (var group in sortingGroups)
+            {
+                string layerName = group.Key.Item1;
+                int orderInLayer = group.Key.Item2;
+
+                if (!layerDictionary.ContainsKey(layerName))
+                {
+                    GameObject layerGameObject = new GameObject();
+                    layerGameObject.name = layerName;
+                    layerDictionary[layerName] = layerGameObject;
+                }
+
+                GameObject layerObject = layerDictionary[layerName];
+
+                string orderName = orderInLayer.ToString();
+                Transform orderTransform = layerObject.transform.Find(orderName);
+
+                if (orderTransform == null)
+                {
+                    GameObject orderGameObject = new GameObject();
+                    orderGameObject.name = orderName;
+                    orderGameObject.transform.SetParent(layerObject.transform);
+                    orderTransform = orderGameObject.transform;
+                }
+
+                foreach (var obj in group.Value)
+                {
+                    obj.transform.SetParent(orderTransform);
+                }
+            }
         }
         #endregion
     }
