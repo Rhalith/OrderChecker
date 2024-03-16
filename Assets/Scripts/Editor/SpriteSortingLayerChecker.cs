@@ -5,7 +5,9 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public class SpriteSortingLayerChecker : EditorWindow
+namespace Rhalith.Sorting_Layer_Checker.Scripts.Editor
+{
+    public class SpriteSortingLayerChecker : EditorWindow
     {
         private string sortingLayerToCheck = "";
         private string orderInLayerToCheck = "";
@@ -188,4 +190,5 @@ public class SpriteSortingLayerChecker : EditorWindow
         }
         #endregion
     }
+}
 #endif
