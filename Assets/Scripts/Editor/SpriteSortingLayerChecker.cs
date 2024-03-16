@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class SpriteSortingLayerChecker : EditorWindow
     {
@@ -40,11 +39,19 @@ public class SpriteSortingLayerChecker : EditorWindow
             {
                 if (isComplex)
                 {
-                    CreateSceneForChecking();
+                    bool proceed = EditorUtility.DisplayDialog("Confirm Action", "Are you sure you want to create a new scene for checking?", "Yes", "No");
+                    if (proceed)
+                    {
+                        CreateSceneForChecking();
+                    }
                 }
                 else
                 {
-                    CheckSpriteSortingLayers();
+                    bool proceed = EditorUtility.DisplayDialog("Confirm Action", "Are you sure you want to check sprite sorting layers?", "Yes", "No");
+                    if (proceed)
+                    {
+                        CheckSpriteSortingLayers();
+                    }
                 }
             }
         }
