@@ -151,6 +151,7 @@ namespace Rhalith.Sorting_Layer_Checker.Scripts.Editor
                 }
             }
             ChangeCreatedSceneHiearchy(sortingGroups);
+            EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
         }
         
         private void ChangeCreatedSceneHiearchy(Dictionary<Tuple<string, int>, List<GameObject>> sortingGroups)
