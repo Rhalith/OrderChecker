@@ -10,7 +10,7 @@ public class SpriteSortingLayerChecker : EditorWindow
         private string sortingLayerToCheck = "";
         private string orderInLayerToCheck = "";
         private bool showInactive;
-        private bool isComplex;
+        private bool isSceneCreation;
         private string newSceneLocation = "Scenes";
 
         [MenuItem("Tools/Sprite Sorting Layer Checker")]
@@ -28,8 +28,8 @@ public class SpriteSortingLayerChecker : EditorWindow
             orderInLayerToCheck = EditorGUILayout.TextField("Order in Layer", orderInLayerToCheck);
             GUILayout.Label("Show inactive objects:", EditorStyles.boldLabel);
             showInactive = EditorGUILayout.Toggle("Show Inactive", showInactive);
-            isComplex = EditorGUILayout.Toggle("Is Complex", isComplex);
-            if (isComplex)
+            isSceneCreation = EditorGUILayout.Toggle("Create scene", isSceneCreation);
+            if (isSceneCreation)
             {
                 GUILayout.Label("Enter the location of scenes in Assets folder to save the new scene:");
                 newSceneLocation = EditorGUILayout.TextField("New Scene Location", newSceneLocation);
@@ -37,7 +37,7 @@ public class SpriteSortingLayerChecker : EditorWindow
 
             if (GUILayout.Button("Check Sprite Sorting Layers"))
             {
-                if (isComplex)
+                if (isSceneCreation)
                 {
                     bool proceed = EditorUtility.DisplayDialog("Confirm Action", "Are you sure you want to create a new scene for checking?", "Yes", "No");
                     if (proceed)
